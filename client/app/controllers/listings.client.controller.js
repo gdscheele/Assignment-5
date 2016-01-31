@@ -15,7 +15,6 @@ angular.module('listings').controller('ListingsController', ['$scope', '$locatio
     };
 
     $scope.findOne = function() {
-      debugger;
       $scope.loading = true;
 
       /*
@@ -79,6 +78,29 @@ angular.module('listings').controller('ListingsController', ['$scope', '$locatio
         successfully finished, navigate back to the 'listing.list' state using $state.go(). If an error 
         occurs, pass it to $scope.error. 
        */
+      var id = $stateParams.listingId;
+
+      Listings.read(id)
+          .then(function(response) {
+            $scope.listing = response.data;
+            console.log($scope.listing);
+            $scope.loading = false;
+          }, function(error) {
+            $scope.error = 'Unable to retrieve listing with id "' + id + '"\n' + error;
+            $scope.loading = false;
+          });
+
+      if(isValid) {
+        Listings.update(id, $scope.listing)
+            .then(function(response) {
+              console.log('success');
+              //if the object is successfully saved redirect back to the list page
+              $state.go('listings.list', { successMessage: 'Listing succesfully updated!' });
+            }, function(error) {
+              //otherwise display the error
+              $scope.error = 'Unable to update listing!\n' + error;
+            });
+      }
     };
 
     $scope.remove = function() {
@@ -86,6 +108,93 @@ angular.module('listings').controller('ListingsController', ['$scope', '$locatio
         Implement the remove function. If the removal is successful, navigate back to 'listing.list'. Otherwise, 
         display the error. 
        */
+      var id = $stateParams.listingId;
+
+      Listings.read(id)
+          .then(function(response) {
+            $scope.listing = response.data;
+            console.log($scope.listing);
+            $scope.loading = false;
+          }, function(error) {
+            $scope.error = 'Unable to retrieve listing with id "' + id + '"\n' + error;
+            $scope.loading = false;
+          });
+
+        Listings.delete(id)
+            .then(function(response) {
+              //if the object is successfully saved redirect back to the list page
+              $state.go('listings.list', { successMessage: 'Listing succesfully deleted!' });
+            }, function(error) {
+              //otherwise display the error
+              $scope.error = 'Unable to delete listing!\n' + error;
+            });
+    };
+
+    $scope.initMap = function() {
+      Listings.getAll().then(function(response) {
+        $scope.loading = false; //remove loader
+        $scope.listings = response.data;
+
+        var infowindow = new google.maps.InfoWindow();
+        var map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 15,
+          center: {lat: 29.643354, lng: -82.346198} //uf coordinates
+        });
+
+        $scope.listings.forEach(function(item) {
+          if(item.coordinates) {
+            var myLatLng = {lat: item.coordinates.latitude, lng: item.coordinates.longitude};
+
+            var marker = new google.maps.Marker({
+              position: myLatLng,
+              map: map,
+              title: item.name
+            });
+
+            google.maps.event.addListener(marker, 'click', function() {
+              infowindow.setContent(
+                  "<table>" +
+                      "<tr>" +
+                        "<td>" +
+                          "<label>Name:</label>" +
+                        "</td>" +
+                        "<td>" +
+                        item.name +
+                        "</td>" +
+                      "</tr>" +
+                      "<tr>" +
+                        "<td>" +
+                          "<label>Code:</label>" +
+                        "</td>" +
+                        "<td>" +
+                        item.code +
+                        "</td>" +
+                      "</tr>" +
+                      "<tr>" +
+                        "<td>" +
+                          "<label>Address:</label>" +
+                        "</td>" +
+                        "<td>" +
+                        item.address +
+                        "</td>" +
+                      "</tr>" +
+                  "</table>"
+              );
+              infowindow.open(map, marker);
+            });
+          }
+        });
+
+
+
+      }, function(error) {
+        $scope.loading = false;
+        $scope.error = 'Unable to retrieve listings!\n' + error;
+      });
+
+
+
+
     };
 
     /* Bind the success message to the scope if it exists as part of the current state */

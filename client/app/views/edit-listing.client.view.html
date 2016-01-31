@@ -1,1 +1,18 @@
 <!-- Fill in this file to create a UI view for editing listing entries. -->
+<div ng-controller="ListingsController" ng-init="update(false)">
+
+    <form>
+        Code:<br>
+        <input type="text" name="code" ng-model="listing.code"><br>
+        Name:<br>
+        <input type="text" name="name" ng-model="listing.name"><br>
+        Address:<br>
+        <input type="text" name="address" ng-model="listing.address"><br>
+        Latitude:<br>
+        <input type="text" name="latitude" ng-model="listing.coordinates.latitude"><br>
+        Longitude:<br>
+        <input type="text" name="longitude" ng-model="listing.coordinates.longitude"><br>
+        <div class="btn btn-xs btn-success" ng-click="update(true)">Save</div>
+    </form>
+
+</div>
